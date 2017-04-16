@@ -13,8 +13,8 @@ public class GameManager : MonoBehaviour {
     private int moves;
     private int rotation;
 
-    // Use this for initialization
-    void Start () {
+	// Use this for initialization
+	void Start () {
         GameObject levelManager = GameObject.FindGameObjectWithTag("LevelManager");
         Vector2 gridSize = levelManager.GetComponent<LevelManager>().gridSize;
         snake.Add(Instantiate(snakeHeadPrefab, new Vector3(Mathf.Round(gridSize.x / 2), 1, Mathf.Round(gridSize.y / 2) - 1), Quaternion.identity));
@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour {
         {
             rotation -= 90;
         }
+
         moveTimer -= Time.deltaTime;
         if(moveTimer < 0) {
             moves++;
