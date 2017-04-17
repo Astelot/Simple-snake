@@ -10,22 +10,32 @@ public class LevelManager : MonoBehaviour
 
     public GameObject fieldPrefab;
     public GameObject wallPrefab;
-    public GameObject snakeHeadPrefab;
-    public GameObject snakeBodyPrefab;
-    public GameObject snakeTailPrefab;
+
+    //DEBUG
+    public GameObject food;
 
     private GameObject[,] levelGrid;
     private GameObject[] levelWalls;
     private GameObject level;
-    private List<GameObject> snake = new List<GameObject>();
+    private GameObject snake;
+    private GameManager gameManager;
+    private SnakeController snakeController;
 
-    void Awake()
+    void Start()
     {
+        gameManager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
         generateLevel();
+
+        //DEBUG
+        Instantiate(food, Vector3.zero + Vector3.up, Quaternion.identity);
     }
 
     public GameObject getLevel() {
         return this.level;
+    }
+
+    public GameObject getSnake() {
+        return this.snake;
     }
 
     public void generateLevel()
@@ -40,27 +50,39 @@ public class LevelManager : MonoBehaviour
         centerCamera();
     }
 
+    public Vector3 getGridCenter() {
+
+        return (levelGrid[0, 0].transform.position +
+            levelGrid[(int)gridSize.x - 1, 0].transform.position +
+            levelGrid[0, (int)gridSize.y - 1].transform.position +
+            levelGrid[(int)gridSize.x - 1, (int)gridSize.y - 1].transform.position) / 4;
+    }
+
     private void centerCamera() {
-        Camera.main.transform.position = new Vector3(0, Mathf.Max(gridSize.x, gridSize.y) + 1, 0);
+
+        Camera.main.transform.position = getGridCenter() + new Vector3(0, 10, 0);
         Camera.main.orthographicSize = Mathf.Max(gridSize.x, gridSize.y)/1.2f;
     }
 
     private void generateSnake()
     {
-        GameObject snakePrefab;
+        generateHead();
+        generateBody();
+    }
 
-        for (int i = 0; i < snakeStartPosition.Length; i++) {
+    private void generateHead()
+    {
+        snake = Instantiate(gameManager.getSnakeHead(), new Vector3(snakeStartPosition[0].x, 1, snakeStartPosition[0].y), Quaternion.identity);
+        snake.transform.SetParent(level.transform);
+        snakeController = GameObject.FindGameObjectWithTag("Snake").GetComponent<SnakeController>();
+    }
 
-            if (i > 0 && i < snakeStartPosition.Length)
-                snakePrefab = snakeBodyPrefab;
-            else if (i == 0)
-                snakePrefab = snakeHeadPrefab;
-            else snakePrefab = snakeTailPrefab;
-
-            snake.Add(Instantiate(snakePrefab, new Vector3(snakeStartPosition[i].x, 1, snakeStartPosition[i].y), Quaternion.identity));
-
-            snake[i].name = "Snake";
-            snake[i].transform.SetParent(level.transform);
+    private void generateBody()
+    {
+        GameObject snakePrefab = gameManager.getSnakeBody();
+        for (int i = 1; i < snakeStartPosition.Length; i++)
+        {
+            snakeController.grow(snakePrefab, new Vector3(snakeStartPosition[i].x, 1, snakeStartPosition[i].y), level.transform, i == snakeStartPosition.Length - 1 ? true : false);
         }
     }
 
@@ -94,18 +116,6 @@ public class LevelManager : MonoBehaviour
             }
 
         }
-
-        /*for (int y = -1; y <= gridSize.y; y++) {
-            levelWalls[n++] = Instantiate(wallPrefab, new Vector3(-1, 0, y), Quaternion.identity);
-            levelWalls[n++] = Instantiate(wallPrefab, new Vector3(gridSize.x, 0, y), Quaternion.identity);
-        }
-
-        for (int x = 0; x < gridSize.x; x++)
-        {
-            levelWalls[n++] = Instantiate(wallPrefab, new Vector3(x, 0, -1), Quaternion.identity);
-            levelWalls[n++] = Instantiate(wallPrefab, new Vector3(x, 0, gridSize.y), Quaternion.identity);
-        }*/
-
         populateLevelWalls();
     }
 
