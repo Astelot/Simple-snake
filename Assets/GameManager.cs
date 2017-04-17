@@ -4,46 +4,46 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
-    public GameObject snakeHeadPrefab;
-    public GameObject snakeBodyPrefab;
     public float moveTimer = 1f;
     public float timeDecreasePerMove = 0.01f;
 
-    private List<GameObject> snake = new List<GameObject>();
     private int moves;
-    private int rotation;
+    private int desiredRotation;
+    private LevelManager levelManager;
+    private InputManager inputManager;
 
-	// Use this for initialization
 	void Start () {
-        GameObject levelManager = GameObject.FindGameObjectWithTag("LevelManager");
-        Vector2 gridSize = levelManager.GetComponent<LevelManager>().gridSize;
-        snake.Add(Instantiate(snakeHeadPrefab, new Vector3(Mathf.Round(gridSize.x / 2), 1, Mathf.Round(gridSize.y / 2) - 1), Quaternion.identity));
-        //DEBUG
-        for (int i = 1; i < 4; i++) {
-            snake.Add(Instantiate(snakeBodyPrefab, new Vector3(Mathf.Round(gridSize.x / 2), 1, Mathf.Round(gridSize.y / 2) - 1 - i), Quaternion.identity));
-        }
+        levelManager = GameObject.FindGameObjectWithTag("LevelManager").GetComponent<LevelManager>();
+        inputManager = GameObject.FindGameObjectWithTag("InputManager").GetComponent<InputManager>();
         moves = 0;
 	}
 	
-	// Update is called once per frame
 	void Update () {
-
-        if(Input.GetButtonDown("Right"))
-        {
-            Debug.Log("Stisnuo sam right");
-            rotation += 90;
-        }
-
-        else if (Input.GetButtonDown("Left"))
-        {
-            rotation -= 90;
-        }
 
         moveTimer -= Time.deltaTime;
         if(moveTimer < 0) {
-            moves++;
-            snake[0].GetComponent<SnakeController>().moveSnake(snake, rotation);
-            moveTimer = 1f - (moves * timeDecreasePerMove);
+            updateSnake();
+            updateLevel();
+            resetTimers();
         }
-	}
+    }
+
+    private void updateSnake()  {
+
+    }
+
+    private void updateLevel()  {
+
+        desiredRotation = inputManager.getLevelRotation();
+        moves++;
+
+        if (desiredRotation != 0)
+            iTween.RotateAdd(levelManager.getLevel(), Vector3.up * desiredRotation, 0.8f);
+    }
+
+    private void resetTimers()  {
+
+        moveTimer = 1f;
+        inputManager.setLevelRotation(0);
+    }
 }
